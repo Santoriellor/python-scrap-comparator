@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
-{% block content %}  
-<div class="d-flex flex-row w-100">
-    {% for url, products in search_results.items %}
-        {% include './products.html' %}
-    {% endfor %}
-</div>
+{% block content %}
+
+{% include './products.html' %}
+    
 {% endblock %}

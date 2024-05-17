@@ -4,10 +4,11 @@
     <div id="search-{{ search.id }}" class="mb-1">
         <p class="text-capitalize mb-1">{{ search.query }}
         <i class="text-muted small">{{ search.created_at|date:"d/m/Y H:i" }}</i></p>
-        <a class="btn btn-outline-success btn-sm" style="font-size:0.7rem;" href="{% url 'view_history_result' query_id=search.id %}">View result</a>
-        <a class="btn btn-outline-info btn-sm" style="font-size:0.7rem;" href="{% url 'update_history_result' query_id=search.id %}">Update</a>
+        <button class="view-history-result btn btn-outline-success btn-sm" style="font-size:0.7rem;" data-search-id="{{ search.id }}">View result</button>
+        <button class="update-history-result btn btn-outline-info btn-sm" style="font-size:0.7rem;"  data-search-id="{{ search.id }}">Update</button>
         <button class="delete-history-result btn btn-outline-danger btn-sm" style="font-size:0.7rem;" data-search-id="{{ search.id }}">Delete</button>
+        <hr>
     </div>
-    <hr>
+
     {% endfor %}
 </div>

@@ -1,23 +1,46 @@
-        
-<div class="col">
-    <h5>
-        {% if url|slice:":20" == 'https://www.coop.ch/' %}
-            Coop
-        {% elif url|slice:":20" == 'https://www.migros.c' %}
-            Migros
-        {% elif url|slice:":20" == 'https://www.aldi-now' %}
-            Aldi
-        {% endif %}
-    </h5>
-    <div class="d-flex flex-wrap">
-    {% for product in products %}
-        <div class="card mr-3 mb-3" style="max-width: 160px; margin-right:15px">
-            <div class="card-header text-truncate" title="{{ product.product_name }}">{{ product.product_name }}</div>
-            <div class="card-body">
-                <p class="card-text">{{ product.product_price }}<p>
-                <img class="card-img-top" src="{{ product.image_src}}" {% if product.image_srcset %} srcset="{{ product.image_srcset }}" {% endif %}>
-            </div>
+<div style="display: none; flex-direction: row; width: 100%; height: 100vw" id="placeholder">
+    <div class="col border rounded p-1 m-1 bg-light">
+        <div class="d-flex align-items-center justify-content-center pt-3">
+            <span>Loading...&nbsp;</span>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
         </div>
-    {% endfor %} 
     </div>
+    <div class="col border rounded p-1 m-1 bg-light">
+        <div class="d-flex align-items-center justify-content-center pt-3">
+            <span>Loading...&nbsp;</span>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </div>
+    <div class="col border rounded p-1 m-1 bg-light">
+        <div class="d-flex align-items-center justify-content-center pt-3">
+            <span>Loading...&nbsp;</span>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </div>    
+</div>  
+<div style="display: flex; flex-direction: row; width: 100%;" id="content">
+    {% for url, products in search_results.items %}        
+    <div class="col border rounded p-1 m-1 bg-light">
+        <h6>
+            {% if url|slice:":20" == 'https://www.coop.ch/' %}
+                Coop
+            {% elif url|slice:":20" == 'https://www.migros.c' %}
+                Migros
+            {% elif url|slice:":20" == 'https://www.aldi-now' %}
+                Aldi
+            {% endif %}
+        </h6>
+        <div class="d-flex flex-wrap justify-content-center">
+        {% for product in products %}
+            <div class="card ml-1 mr-1 mb-3" style="max-width: 160px; margin-left:5px; margin-right:5px">
+                <div class="card-header text-truncate" title="{{ product.product_name }}">{{ product.product_name }}</div>
+                <div class="card-body">
+                    <p class="card-text">{{ product.product_price }}<p>
+                    <img class="card-img-top" src="{{ product.image_src}}" {% if product.image_srcset %} srcset="{{ product.image_srcset }}" {% endif %}>
+                </div>
+            </div>
+        {% endfor %} 
+        </div>
+    </div>
+    {% endfor %}
 </div>

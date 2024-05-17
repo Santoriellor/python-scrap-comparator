@@ -1,0 +1,3 @@
+- [ ] Update search history for update function
+- [ ] Update search history for search function
+- [X] Change the view function with ajax

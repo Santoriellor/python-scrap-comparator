@@ -18,14 +18,11 @@
             </li> -->
         </ul>
     </div>
-    <form action="{% url 'search_products' %}" method="GET">
-        {% csrf_token %}
-        <div class="input-group">
-            <input type="search" name="query" class="form-control" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" placeholder="Search a product" aria-label="Search a product" aria-describedby="button-search">
-            <div class="input-group-append">
-                <button class="btn btn-success" style="border-top-left-radius: 0; border-bottom-left-radius: 0;" type="submit" id="button-search">Search</button>
-            </div>
+    <div class="input-group w-25" id="searchbox">
+        <input type="search" id="search-input" class="form-control" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" placeholder="Search a product" aria-label="Search a product" aria-describedby="button-search">
+        <div class="input-group-append">
+            <button class="btn btn-success" style="border-top-left-radius: 0; border-bottom-left-radius: 0;" id="button-search">Search</button>
         </div>
-    </form>
+    </div>
 </nav>
   

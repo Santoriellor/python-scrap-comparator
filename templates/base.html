@@ -9,11 +9,14 @@
         :root {
         --base-font-size: 1rem; /* Define the base font size */
         }
-            
+        
         /* Media queries for different screen sizes */
         @media (max-width: 576px) {
           body {
             font-size: calc(var(--base-font-size) * 0.6); /* Adjust font size for extra small screens */
+          }
+          #searchbox {
+            width: 60% !important;
           }
         }
     
@@ -21,11 +24,17 @@
           body {
             font-size: calc(var(--base-font-size) * 0.8); /* Adjust font size for small screens */
           }
+          #searchbox {
+            width: 50% !important;
+          }
         }
     
         @media (min-width: 768px) and (max-width: 992px) {
           body {
             font-size: calc(var(--base-font-size) * 0.9); /* Adjust font size for medium screens */
+          }
+          #searchbox {
+            width: 40% !important;
           }
         }
     
@@ -34,7 +43,7 @@
             font-size: calc(var(--base-font-size) * 1); /* Adjust font size for large screens */
           }
         }
-      </style>
+    </style>
 </head>
 <body style="padding-top:4rem;">
     <!-- Navigation Bar -->
@@ -65,16 +74,194 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // search request from the navbar
+    $(document).ready(function() {       
+            // function to get a cookie parameter
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+        
+        // AJAX request to search and scrap the query from the search bar
+        function fetchSearchData(query) {
+            // Hide the content and display the placeholder
+            $('#placeholder').css('display', 'flex');
+            console.log('show placeholder');
+            // Hide content
+            $('#content').hide();
+            console.log('hide content');
+
+            $.ajax({
+                url: '/search/',  // URL to your Django view
+                type: 'POST',
+                dataType: 'html',
+                data: {
+                    query: query
+                },
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function(response) {
+                    // Hide the placeholder
+                    $('#placeholder').hide();
+                    console.log('hide placeholder');
+                    // Clear existing content
+                    $('#content').empty();
+                    // Update content with fetched data
+                    $('#content').html(response).show();
+                    console.log('show content');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                    // Hide placeholder on error
+                    $('#placeholder').hide();
+                    // Optionally handle errors
+                }
+            });
+        }
+        // Event listener for "search" button clicks
+        $('#button-search').on('click', function() {
+            var query = $('#search-input').val();
+            
+            fetchSearchData(query);
+        });
+    });
+
+    // view history result from history bar
     $(document).ready(function() {
-        // JavaScript code for AJAX request
+        // AJAX request to view the result of a searched query from the history bar
+        function viewHistoryResult(searchId) {
+            
+            $.ajax({
+                url: '/view-history-result/',  // URL to your Django view
+                type: 'GET',
+                dataType: 'html',
+                data: {
+                    searchId: searchId
+                },
+                success: function(response) {
+                    $('#content').html(response)
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                    // Optionally handle errors
+                }
+            });
+        }
+        // Event listener for "view result" button clicks
+        $('.view-history-result').on('click', function() {
+            var searchId = $(this).data('search-id');
+            viewHistoryResult(searchId);
+        });
+    });
+    
+    // update history result from history bar
+    $(document).ready(function() {
+        // function to get a cookie parameter
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        // AJAX request to update and scrap a searched query from the history bar
+        function fetchUpdatedData(searchId) {
+            // Hide the content and display the placeholder
+            $('#placeholder').css('display', 'flex');
+            console.log('show placeholder update', searchId);
+            // Hide content
+            $('#content').hide();
+            console.log('hide content');
+
+            $.ajax({
+                url: '/update-history-result/',  // URL to your Django view
+                type: 'PUT',
+                dataType: 'html',
+                data: JSON.stringify({
+                    searchId: searchId
+                }),
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    // Hide the placeholder
+                    $('#placeholder').hide();
+                    console.log('hide placeholder');
+                    // Clear existing content
+                    $('#content').empty();
+                    // Update content with fetched data
+                    $('#content').html(response).show();
+                    console.log('show content');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                    // Hide placeholder on error
+                    $('#placeholder').hide();
+                    // Optionally handle errors
+                }
+            });
+        }
+        // Event listener for "update" button clicks
+        $('.update-history-result').on('click', function() {
+            var searchId = $(this).data('search-id');
+            fetchUpdatedData(searchId);
+        });
+    });
+    
+    // delete history result from history bar
+    $(document).ready(function() {
+        // function to get a cookie parameter
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+        
+        // AJAX request to delete a Search entry
         function deleteSearchEntry(searchId) {
             $.ajax({
-                url: '/delete-history-result/' + searchId + '/',
-                type: 'POST',
+                url: '/delete-history-result/',
+                type: 'DELETE',
                 dataType: 'json',
-                beforeSend: function(xhr, settings) {
-                    // Include CSRF token in the request headers
-                    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                data: JSON.stringify({
+                    searchId: searchId
+                }),
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 success: function(response) {
                     if (response.success) {
@@ -82,11 +269,13 @@
                         $('#search-' + searchId).remove();
                         console.log('Search entry deleted:', searchId);
                     } else {
-                        console.error('Error deleting search entry inside:', response.error);
+                        console.error('Error deleting search entry inside success:', response.error);
+                        console.log('searchID :', searchId)
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error deleting search entry:', error);
+                    console.log('searchID :', searchId)
                 }
             });
         }
