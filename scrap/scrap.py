@@ -7,12 +7,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 
-def fetch_html(url):
+
+def fetch_html(url, condition=False):
     # Maximum number of retry attempts
     max_retries = 3
     # number of scroll down
@@ -24,28 +28,38 @@ def fetch_html(url):
     html_content = None
 
     retry_count = 0
+
     while retry_count < max_retries:
+        driver = None
         try:
             # Specify the path to the ChromeDriver executable
             chrome_driver_path = "./chromedriver.exe"
 
             # Set Chrome options
             chrome_options = Options()
+            chrome_options.add_argument("--headless")  # Run in headless mode
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-3rd-party-cookies")
             chrome_options.add_argument(f'--webdriver.chrome.driver={chrome_driver_path}')
 
             # Initialize the Chrome driver with specified options
-            driver = webdriver.Chrome(options=chrome_options)
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
 
             # Set maximum time for page to load
-            driver.set_page_load_timeout(10)  # Timeout in seconds
+            driver.set_page_load_timeout(20)  # Timeout in seconds
 
             # Navigate to the website
             driver.get(url)
 
-            # Wait for specific elements to appear
-            # WebDriverWait(driver, 10).until(
-            #     EC.presence_of_element_located((By.ID, "some_element"))
-            # )
+            # Find and click the cookie consent button
+            try:
+                cookie_button = driver.find_element(By.XPATH, '//button[contains(text(), "Tout autoriser")]')
+                cookie_button.click()
+                time.sleep(2)  # Wait for the cookie consent to be processed
+            except Exception as e:
+                print("Cookie consent button not found or not clickable:", e, url)
 
             # Scroll down the page
             # You can adjust the number of scrolls and sleep time as needed
@@ -55,20 +69,27 @@ def fetch_html(url):
                 # Wait for a short time to allow images to load
                 time.sleep(time_to_scroll)
 
+            # # Wait until either of the two elements is present
+            # if condition:
+            #     WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, "product-item")))
+            
             # Get the page source (HTML content) after it has been dynamically loaded
             html_content = driver.page_source
 
         except TimeoutException:
             # Handle timeout exception
-            print("Page load timed out or element not found")
+            print("Page load timed out or element not found", url)
 
         except Exception as e:
             # Handle other exceptions
-            print("An error occurred:", e)
+            print("An error occurred:", e, url)
 
         finally:
-            # Quit the WebDriver
-            driver.quit()
+            if driver:
+                # Quit the WebDriver
+                driver.close()
+                driver.quit()
+                print("Driver has been closed", url)
 
         if html_content:
             # If the HTML content was successfully retrieved, break out of the retry loop
@@ -78,7 +99,7 @@ def fetch_html(url):
             retry_count += 1
             # Calculate the exponential backoff delay
             delay = 2 ** retry_count + random.uniform(0, 1)
-            print(f"Retry attempt {retry_count}. Waiting for {delay} seconds before retrying...")
+            print(f"Retry attempt {retry_count}. Waiting for {delay} seconds before retrying...", url)
             time.sleep(delay)
 
     # Parse the HTML content using BeautifulSoup if html_content is not None
@@ -87,16 +108,16 @@ def fetch_html(url):
         return soup
     else:
         # Handle the case where html_content is still None after all retries
-        return None
+        return 'No data found'
 
-def scrape_website(url, parser_func):
-    soup = fetch_html(url)
-    return parser_func(soup)
+# def scrape_website(url, parser_func):
+#     soup = fetch_html(url)
+#     return parser_func(soup)
 
-def scrape_multiple_websites(urls_and_parsers):
-    with ThreadPoolExecutor(max_workers=len(urls_and_parsers)) as executor:
-        results = list(executor.map(lambda x: scrape_website(x[0], x[1]), urls_and_parsers))
-    return dict(zip([url for url, _ in urls_and_parsers], results))
+# def scrape_multiple_websites(urls_and_parsers):
+#     with ThreadPoolExecutor(max_workers=len(urls_and_parsers)) as executor:
+#         results = list(executor.map(lambda x: scrape_website(x[0], x[1]), urls_and_parsers))
+#     return dict(zip([url for url, _ in urls_and_parsers], results))
 
 def scrap_coop(soup):
     # Find all <a> tags with an 'id' attribute consisting of seven numbers
@@ -213,6 +234,9 @@ def scrap_migros(soup):
 def scrap_aldi(soup):
     # Find all <product-item> tags
     products = soup.find_all("product-item")
+
+    if not products:
+        return "No products found"
 
     products_data = []
     # Print the links

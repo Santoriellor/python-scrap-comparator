@@ -11,7 +11,9 @@ class Products(models.Model):
 
 class Search(models.Model):
     query = models.CharField('Query', max_length=120)
-    result = models.TextField()
+    products_from_coop = models.TextField(blank=True)
+    products_from_migros = models.TextField(blank=True)
+    products_from_aldi = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

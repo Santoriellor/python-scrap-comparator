@@ -1,6 +1,72 @@
 {% extends 'base.html' %}
+{% block title %} - {{ query }}{% endblock %}
 {% block content %}
 
-{% include './products.html' %}
+<div style="display: flex; flex-direction: row; width: 100%;" id="content">
+    <div class="col border rounded p-1 m-1 bg-light" id="coop-placeholder" style="display: none;">
+        <div class="text-center w-100 pt-3" style="min-height: 400px;">
+            <span>Fetching data...&nbsp;</span>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </div>
+    <div class="col border rounded p-1 m-1 bg-light" id="coop-content">
+        <div class="d-flex justify-content-between m-1 p-1">
+            <h6 class="text-capitalize">Coop</h6>
+            <button class="update-source-result btn btn-outline-info btn-sm" id="btn-update-coop" style="font-size:0.6rem;" data-query="{{ query }}" data-source="coop" data-search-id="{{ searchId }}">Update</button>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center" id="coop-products">
+            {% if all_products.coop %}
+                    {{ all_products.coop|safe }}
+            {% else %}
+                <p>No Coop results available.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col border rounded p-1 m-1 bg-light" id="migros-placeholder" style="display: none;">
+        <div class="text-center w-100 pt-3">
+            <span>Fetching data...&nbsp;</span>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </div>
+    <div class="col border rounded p-1 m-1 bg-light" id="migros-content">
+        <div class="d-flex justify-content-between m-1 p-1">
+            <h6 class="text-capitalize">Migros</h6>
+            <button class="update-source-result btn btn-outline-info btn-sm" id="btn-update-migros" style="font-size:0.6rem;" data-query="{{ query }}" data-source="migros" data-search-id="{{ searchId }}">Update</button>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center" id="migros-products">
+            {% if all_products.migros %}
+                    {{ all_products.migros|safe }}
+            {% else %}
+                <p>No Migros results available.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col border rounded p-1 m-1 bg-light" id="aldi-placeholder" style="display: none;">
+        <div class="text-center w-100 pt-3">
+            <span>Fetching data...&nbsp;</span>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </div> 
+    <div class="col border rounded p-1 m-1 bg-light" id="aldi-content">
+        <div class="d-flex justify-content-between m-1 p-1">
+            <h6 class="text-capitalize">Aldi</h6>
+            <button class="update-source-result btn btn-outline-info btn-sm" id="btn-update-aldi" style="font-size:0.6rem;" data-query="{{ query }}" data-source="aldi" data-search-id="{{ searchId }}">Update</button>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center" id="aldi-products">
+            {% if all_products.aldi %}
+                    {{ all_products.aldi|safe }}
+            {% else %}
+                <p>No Aldi results available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>  
     
+{% endblock %}
+{% block sidebar %}
+<div class="d-flex flex-column p-1" style="min-width: 220px; max-width: 240px; font-size:0.7rem;">
+    <h6>Search history</h6>
+    <div id="search-history">
+    </div>
+</div>
 {% endblock %}

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -8,44 +9,139 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 import json
 import logging
 
-from .scrap import scrape_multiple_websites, scrap_migros, scrap_coop, scrap_aldi
+from .scrap import fetch_html, scrap_migros, scrap_coop, scrap_aldi
 from .models import Search
 
 # logger = logging.getLogger(__name__)
 
 # Create your views here.
 @ensure_csrf_cookie
-def search_products(request):
-    query = request.POST.get('query')
+@transaction.atomic
+def fetch_coop_data(request):
+    if request.method == 'POST':
+        query = request.POST.get('query')
+        search_id = request.POST.get('searchId')
 
-    # Check if the query is empty
-    if not query:
-        messages.error(request, 'Please provide a search query')
-        return redirect(request.META.get('HTTP_REFERER', 'index'))  # Redirect to the index page
-    
-    # urls to scrap with the associated scrapping function
-    urls_and_parsers = [
-        (f"https://www.coop.ch/fr/search/?text={query}", scrap_coop),
-        (f"https://www.migros.ch/fr/search?query={query}", scrap_migros),
-        (f"https://www.aldi-now.ch/fr/search?q={query}", scrap_aldi)
-    ]
-    
-    # Scrap searched products
-    scraped_data = scrape_multiple_websites(urls_and_parsers)
-    json_scraped_data = json.dumps(scraped_data)
+        # Check if the query is empty
+        if not query:
+            return HttpResponse('Please provide a search query for Coop', status=400)
+            
+            # messages.error(request, 'Please provide a search query for Coop')
+            # return redirect(request.META.get('HTTP_REFERER', 'index'))  # Redirect to the index page
+        
+        data_from = 'coop'
+        # Get html content from the Coop search page
+        soup = fetch_html(f"https://www.coop.ch/fr/search/?text={query}")
+        # Scrape searched products
+        scraped_data = scrap_coop(soup)
 
-    # Save the search query and its result to the database
-    search = Search.objects.create(query=query, result=json_scraped_data)
+        # Use get_or_create to retrieve or create the Search object
+        if search_id:
+            search = get_object_or_404(Search.objects.select_for_update(), id=search_id)
+            search.created_at = timezone.now()
+        else:
+            search, created = Search.objects.get_or_create(
+                query=query
+            )
+            if not created:
+                search.created_at = timezone.now()
 
-    # Retrieve all Search objects from the database
-    search_history = Search.objects.all()
+        # render the search results with the template
+        html = render_to_string('scrap/products.html', {
+            'products': scraped_data,
+            })
 
-    # Return the search results to the template
-    return render(request, 'scrap/products.html', {
-        'query': query,
-        'search_results': scraped_data,
-        'search_history': search_history
-        })
+        search.products_from_coop = html
+        search.save()
+
+        # Return the html to the ajax function
+        return HttpResponse(html)
+    else:
+        return HttpResponse('Invalid request method', status=405)
+
+
+@ensure_csrf_cookie
+@transaction.atomic
+def fetch_migros_data(request):
+    if request.method == 'POST':
+        query = request.POST.get('query')
+        search_id = request.POST.get('searchId')
+
+        # Check if the query is empty
+        if not query:
+            return HttpResponse('Please provide a search query for Migros', status=400)
+            
+        data_from = 'migros'
+        # Get html content from the Migros search page
+        soup = fetch_html(f"https://www.migros.ch/fr/search?query={query}")
+        # Scrape searched products
+        scraped_data = scrap_migros(soup)
+                
+        # Use get_or_create to retrieve or create the Search object
+        if search_id:
+            search = get_object_or_404(Search.objects.select_for_update(), id=search_id)
+            search.created_at = timezone.now()
+        else:
+            search, created = Search.objects.get_or_create(
+                query=query
+            )
+            if not created:
+                search.created_at = timezone.now()
+
+        # render the search results with the template
+        html = render_to_string('scrap/products.html', {
+            'products': scraped_data,
+            })
+
+        search.products_from_migros = html
+        search.save()
+
+        # Return the html to the ajax function
+        return HttpResponse(html)
+    else:
+        return HttpResponse('Invalid request method', status=405)
+
+
+@ensure_csrf_cookie
+@transaction.atomic
+def fetch_aldi_data(request):
+    if request.method == 'POST':
+        query = request.POST.get('query')
+        search_id = request.POST.get('searchId')
+
+        # Check if the query is empty
+        if not query:
+            return HttpResponse('Please provide a search query for Aldi', status=400)
+        
+        data_from = 'aldi'
+        # Get html content from the Aldi search page
+        soup = fetch_html(f"https://www.aldi-now.ch/fr/search?q={query}")
+        # Scrap searched products
+        scraped_data = scrap_aldi(soup)
+        
+        # Use get_or_create to retrieve or create the Search object
+        if search_id:
+            search = get_object_or_404(Search.objects.select_for_update(), id=search_id)
+            search.created_at = timezone.now()
+        else:
+            search, created = Search.objects.get_or_create(
+                query=query,
+            )
+            if not created:
+                search.created_at = timezone.now()
+
+        # render the search results with the template
+        html = render_to_string('scrap/products.html', {
+            'products': scraped_data,
+            })
+
+        search.products_from_aldi = html
+        search.save()
+
+        # Return the html to the ajax function
+        return HttpResponse(html)
+    else:
+        return HttpResponse('Invalid request method', status=405)
 
 
 def view_history_result(request):
@@ -53,78 +149,36 @@ def view_history_result(request):
 
     # Retrieve the Search object based on the query id
     search_object = get_object_or_404(Search, id=query_id)
-    # Parse the JSON string into a dictionary
-    result_dict = json.loads(search_object.result)
 
-    # Retrieve all Search objects from the database
-    search_history = Search.objects.all()
+    # Create a list of HTML contents from different sources
+    products = [
+        search_object.products_from_coop,
+        search_object.products_from_migros,
+        search_object.products_from_aldi
+    ]
 
-    # Pass the search result to the template
-    return render(request, 'scrap/products.html', {
+    # Return the list as a JSON response
+    return JsonResponse({
+        'products': products,
         'query': search_object.query,
-        'search_results': result_dict,
-        'search_history': search_history
-        })
+        'searchId': search_object.id
+        })   
 
 
-@ensure_csrf_cookie
-def update_history_result(request):
-    if request.method == 'PUT':
-        try:
-            body_unicode = request.body.decode('utf-8')
-            body = json.loads(body_unicode)
-            query_id = body.get('searchId')
+def get_query_by_search_id(request):
+    search_id = request.GET.get('searchId')
+    if search_id:
+        search_object = get_object_or_404(Search, id=search_id)
+        return JsonResponse({'query': search_object.query})
+    else:
+        return JsonResponse({'error': 'Invalid search ID'}, status=400)
+    
 
-            # logger.debug(f"Received PUT request with searchId: {query_id}")
-
-            # Retrieve the Search object based on the query id
-            search_object = get_object_or_404(Search, id=query_id)
-            query = search_object.query
-
-            # logger.debug(f"Query for searchId {query_id}: {query}")
-
-            # urls to scrap with the associated scrapping function
-            urls_and_parsers = [
-                (f"https://www.coop.ch/fr/search/?text={query}", scrap_coop),
-                (f"https://www.migros.ch/fr/search?query={query}", scrap_migros),
-                (f"https://www.aldi-now.ch/fr/search?q={query}", scrap_aldi)
-            ]
-
-            # Get searched products
-            scraped_data = scrape_multiple_websites(urls_and_parsers)
-            json_scraped_data = json.dumps(scraped_data)
-
-            # logger.debug(f"Scraped data: {json_scraped_data}")
-
-            # Update the existing Search object with the new result
-            search_object.result = json_scraped_data
-            search_object.created_at = timezone.now()  # Update the created_at field
-            search_object.save()
-
-            # Retrieve all Search objects from the database
-            search_history = Search.objects.all()
-
-            # Render the updated products HTML
-            html_content = render_to_string('scrap/products.html', {
-                'query': query,
-                'search_results': scraped_data,
-                'search_history': search_history
-            })
-
-            return HttpResponse(html_content)
-        
-        except json.JSONDecodeError as e:
-            # logger.error(f"JSON decode error: {str(e)}")
-            return HttpResponse({'error': 'Invalid JSON'}, status=400)
-        except Search.DoesNotExist as e:
-            # logger.error(f"Search object not found: {str(e)}")
-            return HttpResponse({'error': 'Search object not found'}, status=404)
-        except Exception as e:
-            # logger.error(f"Error processing PUT request: {str(e)}", exc_info=True)
-            return HttpResponse({'error': 'Internal Server Error'}, status=500)
-
-    # logger.error("Invalid HTTP method")    
-    return HttpResponse(status=405, content='Invalid HTTP method')
+def get_search_history(request):
+    search_history = Search.objects.all().order_by('-created_at')[:10]  # Assuming you want to limit to the last 10 searches
+    search_data = [{'id': search.id, 'query': search.query, 'created_at': search.created_at.strftime('%d/%m/%Y %H:%M')} for search in search_history]
+    return JsonResponse({'search_history': search_data})
+    
 
 @ensure_csrf_cookie
 def delete_history_result(request):
@@ -150,28 +204,27 @@ def delete_history_result(request):
 
 
 def index(request):
-    # urls to scrap with the associated scrapping function
-    urls_and_parsers = [
-        ("https://www.coop.ch/fr/search/?text=yaourt", scrap_coop),
-        ("https://www.migros.ch/fr/search?query=yaourt", scrap_migros),
-        ("https://www.aldi-now.ch/fr/search?q=yaourt", scrap_aldi)
-    ]
-    # Get searched products
-    # scraped_data = scrape_multiple_websites(urls_and_parsers)
-    
-    # Save the scraped data to a JSON file
-    # with open('scraped_data.json', 'w') as json_file:
-    #     json.dump(scraped_data, json_file)
+    # Retrieve the latest search object from the database
+    latest_search = Search.objects.order_by('-created_at').first()
 
-    # Load the scraped data from the JSON file
-    with open('scraped_data.json', 'r') as json_file:
-        scraped_data = json.load(json_file)
+    # Extract the scraped data from the latest search
+    if latest_search:
+        all_products = {
+            'coop': latest_search.products_from_coop,
+            'migros': latest_search.products_from_migros,
+            'aldi': latest_search.products_from_aldi
+        }
+        # Render the template with the context
+        return render(request, 'scrap/compare.html', {
+            'query': latest_search.query,
+            'searchId': latest_search.id,
+            'all_products': all_products
+    })
+    else:
+        # If no search history is available, set scraped_data to an empty dictionary
+        all_products = {}
 
-    # Retrieve all Search objects from the database
-    search_history = Search.objects.all()
-
-    # Render app template with context
-    return render(request, 'scrap/compare.html', {
-        'search_results': scraped_data,
-        'search_history': search_history
+        # Render the template with the context
+        return render(request, 'scrap/compare.html', {
+            'all_products': all_products
         })

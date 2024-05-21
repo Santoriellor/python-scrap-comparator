@@ -1,3 +1,5 @@
 - [ ] Update search history for update function
 - [ ] Update search history for search function
 - [X] Change the view function with ajax
+- [ ] Bind the search field to the button to execute on keyboard enter press
+- [ ] Finish update search history

@@ -1,14 +1,15 @@
-<div class="d-flex flex-column p-1" style="min-width: 220px; max-width: 240px; font-size:0.7rem;">
-    <h6 id="search-history">Search history</h6>
-    {% for search in search_history %}
-    <div id="search-{{ search.id }}" class="mb-1">
-        <p class="text-capitalize mb-1">{{ search.query }}
-        <i class="text-muted small">{{ search.created_at|date:"d/m/Y H:i" }}</i></p>
-        <button class="view-history-result btn btn-outline-success btn-sm" style="font-size:0.7rem;" data-search-id="{{ search.id }}">View result</button>
-        <button class="update-history-result btn btn-outline-info btn-sm" style="font-size:0.7rem;"  data-search-id="{{ search.id }}">Update</button>
-        <button class="delete-history-result btn btn-outline-danger btn-sm" style="font-size:0.7rem;" data-search-id="{{ search.id }}">Delete</button>
-        <hr>
-    </div>
-
-    {% endfor %}
-</div>
+<!-- <div class="d-flex flex-column p-1" style="min-width: 220px; max-width: 240px; font-size:0.7rem;">
+    <h6>Search history</h6>
+    <div id="search-history"> -->
+        <!-- {% for search in search_history %}
+        <div id="search-{{ search.id }}" class="mb-1">
+            <p class="text-capitalize mb-1">{{ search.query }}
+            <i class="text-muted small">{{ search.created_at|date:"d/m/Y H:i" }}</i></p>
+            <button class="view-history-result btn btn-outline-success btn-sm" style="font-size:0.7rem;" data-search-id="{{ search.id }}">View result</button>
+            <button class="update-history-result btn btn-outline-info btn-sm" style="font-size:0.7rem;"  data-search-id="{{ search.id }}">Update</button>
+            <button class="delete-history-result btn btn-outline-danger btn-sm" style="font-size:0.7rem;" data-search-id="{{ search.id }}">Delete</button>
+            <hr>
+        </div>
+        {% endfor %} -->
+    <!-- </div>
+</div> -->
