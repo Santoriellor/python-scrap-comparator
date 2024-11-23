@@ -1,0 +1,19 @@
+<div class="d-flex justify-content-between m-1 p-1">
+    <h6 class="text-capitalize">{{ source }}</h6>
+    {% if not data.error_message and data.products %}
+            <button class="update-source-result btn btn-outline-info btn-sm" id="btn-update-{{ source }}" style="font-size:0.6rem;" data-source="{{ source }}" data-search-id="{{ search.id }}">Update</button>
+    {% endif %}
+</div>
+<div class="d-flex flex-wrap justify-content-center" id="{{ source }}-products">
+    {% if data.error_message %}
+        {{ data.error_message }}
+    {% else %}
+        {% if data.products %}
+            {% for product in data.products %}
+                {% include 'scrap/product_template.html' with product=product %}
+            {% endfor %}
+        {% else %}
+            <p>No <span class="text-capitalize">{{ source }}</span> results available.</p>
+        {% endif %}
+    {% endif %}
+</div>

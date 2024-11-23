@@ -1,0 +1,39 @@
+/* Custom CSS */
+:root {
+    --base-font-size: 1rem; /* Define the base font size */
+    }
+    
+    /* Media queries for different screen sizes */
+    @media (max-width: 576px) {
+      body {
+        font-size: calc(var(--base-font-size) * 0.6); /* Adjust font size for extra small screens */
+        min-width: 576px;
+      }
+      #searchbox {
+        width: 60% !important;
+      }
+    }
+
+    @media (min-width: 576px) and (max-width: 768px) {
+      body {
+        font-size: calc(var(--base-font-size) * 0.8); /* Adjust font size for small screens */
+      }
+      #searchbox {
+        width: 50% !important;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 992px) {
+      body {
+        font-size: calc(var(--base-font-size) * 0.9); /* Adjust font size for medium screens */
+      }
+      #searchbox {
+        width: 40% !important;
+      }
+    }
+
+    @media (min-width: 992px) {
+      body {
+        font-size: calc(var(--base-font-size) * 1); /* Adjust font size for large screens */
+      }
+    }

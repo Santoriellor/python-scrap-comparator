@@ -1,9 +1,0 @@
-{% for product in products %}
-<div class="card ml-1 mr-1 mb-3" style="max-width: 160px; margin-left:5px; margin-right:5px">
-    <div class="card-header text-truncate" title="{{ product.product_name }}">{{ product.product_name }}</div>
-    <div class="card-body">
-        <p class="card-text">{{ product.product_price }}<p>
-        <img class="card-img-top" src="{{ product.image_src}}" {% if product.image_srcset %} srcset="{{ product.image_srcset }}" {% endif %}>
-    </div>
-</div>
-{% endfor %}

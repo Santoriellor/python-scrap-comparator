@@ -1,24 +1,11 @@
-<nav class="navbar fixed-top navbar-expand-md navbar-light bg-light">
-    
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarToggler">
-        <span class="navbar-brand mb-0 pl-1 h1" style="padding-left:10px;">Shop comparator</span>
-        <ul class="navbar-nav mr-auto mt-lg-0">
-            <!-- <li class="nav-item active">
-            <a class="nav-link" href="#">Home<span class="sr-only"> (current)</span></a>
-            </li> -->
-            <li class="nav-item">
-            <a class="nav-link" href="#">About</a>
-            </li>
-            <!-- <li class="nav-item">
-            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-            </li> -->
-        </ul>
+<nav class="navbar fixed-top navbar-light bg-light d-flex justify-content-between">
+    <div class="navbar pt-0 pb-0" role="navigation">
+        <nav class="nav">
+            <a class="nav-link link-dark" href="{% url 'index' %}"><b>Comparator</b></a>
+            <a class="nav-link link-dark text-muted" href="#"><i>About</i></a>
+        </nav>
     </div>
-    <div class="input-group w-25" id="searchbox">
+    <div class="input-group w-25" style="margin-right: 5px" id="searchbox">
         <input type="search" id="search-input" class="form-control" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" placeholder="Search a product" aria-label="Search a product" aria-describedby="button-search">
         <div class="input-group-append">
             <button class="btn btn-success" style="border-top-left-radius: 0; border-bottom-left-radius: 0;" id="button-search">Search</button>

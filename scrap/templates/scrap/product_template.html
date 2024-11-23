@@ -1,0 +1,7 @@
+<div class="card ml-1 mr-1 mb-3" style="max-width: 160px; margin-left:5px; margin-right:5px">
+    <div class="card-header text-truncate" title="{{ product.name }}">{{ product.name }}</div>
+    <div class="card-body">
+        <p class="card-text">{{ product.price }}<p>
+        <img class="card-img-top" src="{{ product.img_src}}" {% if product.img_srcset %} srcset="{{ product.img_srcset }}" {% endif %}>
+    </div>
+</div>
